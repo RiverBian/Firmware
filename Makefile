@@ -191,6 +191,7 @@ px4fmu_firmware: \
 	check_px4fmu-v1_default \
 	check_px4fmu-v2_default \
 	check_px4fmu-v3_default \
+	check_px4fmu-v3pro_default \
 	check_px4fmu-v4_default \
 	check_px4fmu-v4pro_default \
 	check_px4fmu-v5_default \

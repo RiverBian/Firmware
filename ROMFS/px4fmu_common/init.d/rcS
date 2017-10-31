@@ -131,14 +131,14 @@ then
 	#
 	# Start system state indicator
 	#
-	if rgbled start
-	then
-	else
-		if blinkm start
-		then
-			blinkm systemstate
-		fi
-	fi
+	# if rgbled start
+	# then
+	# else
+	# 	if blinkm start
+	# 	then
+	# 		blinkm systemstate
+	# 	fi
+	# fi
 
 	# Currently unused, but might be useful down the road
 	#if pca8574 start
@@ -195,7 +195,7 @@ then
 	set EXIT_ON_END no
 	set MAV_TYPE none
 	set FAILSAFE none
-	set USE_IO yes
+	set USE_IO no
 	set LOGGER_BUF 16
 
 	#
@@ -203,6 +203,11 @@ then
 	#
 	if param compare SYS_USE_IO 1
 	then
+		if ver hwcmp PX4FMU_V3PRO
+		then
+			set USE_IO no
+		fi
+
 		if ver hwcmp PX4FMU_V4
 		then
 			set USE_IO no
@@ -214,46 +219,46 @@ then
 			set MAVLINK_COMPANION_DEVICE /dev/ttyS3
 		fi
 
-		if ver hwcmp MINDPX_V2
-		then
-			set USE_IO no
-		fi
+		# if ver hwcmp MINDPX_V2
+		# then
+		# 	set USE_IO no
+		# fi
 
-		if ver hwcmp CRAZYFLIE
-		then
-			set USE_IO no
+		# if ver hwcmp CRAZYFLIE
+		# then
+		# 	set USE_IO no
 
-			if param compare SYS_AUTOSTART 0
-			then
-				param set SYS_AUTOSTART 4900
-				set AUTOCNF yes
-			fi
-		fi
+		# 	if param compare SYS_AUTOSTART 0
+		# 	then
+		# 		param set SYS_AUTOSTART 4900
+		# 		set AUTOCNF yes
+		# 	fi
+		# fi
 
-		if ver hwcmp AEROFC_V1
-		then
-			set USE_IO no
-		fi
+		# if ver hwcmp AEROFC_V1
+		# then
+		# 	set USE_IO no
+		# fi
 
-		if ver hwcmp AEROCORE2
-		then
-			set USE_IO no
-		fi
+		# if ver hwcmp AEROCORE2
+		# then
+		# 	set USE_IO no
+		# fi
 	else
 		set USE_IO no
 	fi
 
-	if ver hwcmp AEROFC_V1
-	then
-		if param compare SYS_AUTOSTART 0
-		then
-			set AUTOCNF yes
-		fi
+	# if ver hwcmp AEROFC_V1
+	# then
+	# 	if param compare SYS_AUTOSTART 0
+	# 	then
+	# 		set AUTOCNF yes
+	# 	fi
 
-		# We don't allow changing AUTOSTART as it doesn't work in
-		# other configurations
-		param set SYS_AUTOSTART 4070
-	fi
+	# 	# We don't allow changing AUTOSTART as it doesn't work in
+	# 	# other configurations
+	# 	param set SYS_AUTOSTART 4070
+	# fi
 
 	#
 	# Set parameters and env variables for selected AUTOSTART
@@ -270,17 +275,22 @@ then
 	# If mount (gimbal) control is enabled and output mode is AUX, set the aux
 	# mixer to mount (override the airframe-specific MIXER_AUX setting)
 	#
-	if param compare MNT_MODE_IN -1
-	then
-	else
-		if param compare MNT_MODE_OUT 0
-		then
-			set MIXER_AUX mount
-		fi
-	fi
+	# if param compare MNT_MODE_IN -1
+	# then
+	# else
+	# 	if param compare MNT_MODE_OUT 0
+	# 	then
+	# 		set MIXER_AUX mount
+	# 	fi
+	# fi
 
 	#
 	# Wipe incompatible settings for boards not having two outputs
+	if ver hwcmp PX4FMU_V3PRO
+	then
+		set MIXER_AUX none
+	fi
+
 	if ver hwcmp PX4FMU_V4
 	then
 		set MIXER_AUX none
@@ -291,10 +301,10 @@ then
 		set MIXER_AUX none
 	fi
 
-	if ver hwcmp AEROFC_V1
-	then
-		set MIXER_AUX none
-	fi
+	# if ver hwcmp AEROFC_V1
+	# then
+	# 	set MIXER_AUX none
+	# fi
 
 	#
 	# Override parameters from user configuration file
@@ -312,6 +322,11 @@ then
 	#
 	if [ $AUTOCNF == yes ]
 	then
+		# Disable safety switch by default on PX4FMU_V3PRO
+		if ver hwcmp PX4FMU_V3PRO
+		then
+			param set CBRK_IO_SAFETY 22027
+		fi
 		# Disable safety switch by default on Pixracer
 		if ver hwcmp PX4FMU_V4
 		then
@@ -323,64 +338,64 @@ then
 
 	set IO_PRESENT no
 
-	if [ $USE_IO == yes ]
-	then
-		#
-		# Check if PX4IO present and update firmware if needed
-		#
-		if [ -f /etc/extras/px4io-v2.bin ]
-		then
-			set IO_FILE /etc/extras/px4io-v2.bin
-		else
-			set IO_FILE /etc/extras/px4io-v1.bin
-		fi
+	# if [ $USE_IO == yes ]
+	# then
+	# 	#
+	# 	# Check if PX4IO present and update firmware if needed
+	# 	#
+	# 	if [ -f /etc/extras/px4io-v2.bin ]
+	# 	then
+	# 		set IO_FILE /etc/extras/px4io-v2.bin
+	# 	else
+	# 		set IO_FILE /etc/extras/px4io-v1.bin
+	# 	fi
 
-		if px4io checkcrc ${IO_FILE}
-		then
-			echo "[init] PX4IO CRC OK" >> $LOG_FILE
+	# 	if px4io checkcrc ${IO_FILE}
+	# 	then
+	# 		echo "[init] PX4IO CRC OK" >> $LOG_FILE
 
-			set IO_PRESENT yes
-		else
-			tone_alarm MLL32CP8MB
+	# 		set IO_PRESENT yes
+	# 	else
+	# 		tone_alarm MLL32CP8MB
 
-			if px4io start
-			then
-				# try to safe px4 io so motor outputs dont go crazy
-				if px4io safety_on
-				then
-					# success! no-op
-				else
-					# px4io did not respond to the safety command
-					px4io stop
-				fi
-			fi
+	# 		if px4io start
+	# 		then
+	# 			# try to safe px4 io so motor outputs dont go crazy
+	# 			if px4io safety_on
+	# 			then
+	# 				# success! no-op
+	# 			else
+	# 				# px4io did not respond to the safety command
+	# 				px4io stop
+	# 			fi
+	# 		fi
 
-			if px4io forceupdate 14662 ${IO_FILE}
-			then
-				usleep 10000
-				if px4io checkcrc ${IO_FILE}
-				then
-					echo "PX4IO CRC OK after updating" >> $LOG_FILE
-					tone_alarm MLL8CDE
+	# 		if px4io forceupdate 14662 ${IO_FILE}
+	# 		then
+	# 			usleep 10000
+	# 			if px4io checkcrc ${IO_FILE}
+	# 			then
+	# 				echo "PX4IO CRC OK after updating" >> $LOG_FILE
+	# 				tone_alarm MLL8CDE
 
-					set IO_PRESENT yes
-				else
-					echo "PX4IO update failed" >> $LOG_FILE
-					tone_alarm ${TUNE_ERR}
-				fi
-			else
-				echo "PX4IO update failed" >> $LOG_FILE
-				tone_alarm ${TUNE_ERR}
-			fi
-		fi
-		unset IO_FILE
+	# 				set IO_PRESENT yes
+	# 			else
+	# 				echo "PX4IO update failed" >> $LOG_FILE
+	# 				tone_alarm ${TUNE_ERR}
+	# 			fi
+	# 		else
+	# 			echo "PX4IO update failed" >> $LOG_FILE
+	# 			tone_alarm ${TUNE_ERR}
+	# 		fi
+	# 	fi
+	# 	unset IO_FILE
 
-		if [ $IO_PRESENT == no ]
-		then
-			echo "PX4IO not found" >> $LOG_FILE
-			tone_alarm ${TUNE_ERR}
-		fi
-	fi
+	# 	if [ $IO_PRESENT == no ]
+	# 	then
+	# 		echo "PX4IO not found" >> $LOG_FILE
+	# 		tone_alarm ${TUNE_ERR}
+	# 	fi
+	# fi
 
 	#
 	# Set default output if not set
@@ -395,27 +410,27 @@ then
 		fi
 	fi
 
-	if [ $OUTPUT_MODE == io -a $IO_PRESENT != yes ]
-	then
-		# Need IO for output but it not present, disable output
-		set OUTPUT_MODE none
+	# if [ $OUTPUT_MODE == io -a $IO_PRESENT != yes ]
+	# then
+	# 	# Need IO for output but it not present, disable output
+	# 	set OUTPUT_MODE none
 
-		# Avoid using ttyS0 for MAVLink on FMUv1
-		if ver hwcmp PX4FMU_V1
-		then
-			set FMU_MODE serial
-		fi
-	fi
+	# 	# Avoid using ttyS0 for MAVLink on FMUv1
+	# 	if ver hwcmp PX4FMU_V1
+	# 	then
+	# 		set FMU_MODE serial
+	# 	fi
+	# fi
 
-	if [ $OUTPUT_MODE == ardrone ]
-	then
-		set FMU_MODE gpio_serial
-	fi
+	# if [ $OUTPUT_MODE == ardrone ]
+	# then
+	# 	set FMU_MODE gpio_serial
+	# fi
 
-	if [ $OUTPUT_MODE == tap_esc ]
-	then
-		set FMU_MODE rcin
-	fi
+	# if [ $OUTPUT_MODE == tap_esc ]
+	# then
+	# 	set FMU_MODE rcin
+	# fi
 
 	if [ $HIL == yes ]
 	then
@@ -429,14 +444,14 @@ then
 	fi
 
 	set DATAMAN_OPT ""
-	if ver hwcmp AEROFC_V1
-	then
-		set DATAMAN_OPT -i
-	fi
-	if ver hwcmp AEROCORE2
-	then
-		set DATAMAN_OPT "-f /fs/mtd_dataman"
-	fi
+	# if ver hwcmp AEROFC_V1
+	# then
+	# 	set DATAMAN_OPT -i
+	# fi
+	# if ver hwcmp AEROCORE2
+	# then
+	# 	set DATAMAN_OPT "-f /fs/mtd_dataman"
+	# fi
 	# waypoint storage
 	# REBOOTWORK this needs to start in parallel
 	if dataman start $DATAMAN_OPT
@@ -485,30 +500,30 @@ then
 		set OUTPUT_MODE uavcan_esc
 	fi
 
-	# Sensors on the PWM interface bank
-	if param compare SENS_EN_LL40LS 1
-	then
-		# clear pins 5 and 6
-		set FMU_MODE pwm4
-		set AUX_MODE pwm4
-	fi
-	if param greater TRIG_MODE 0
-	then
-		# We ONLY support trigger on pins 5 and 6 when simultanously using AUX for actuator output
-		if param compare TRIG_PINS 56
-		then
-			# clear pins 5 and 6
-			set FMU_MODE pwm4
-			set AUX_MODE pwm4
-		else
-			set FMU_MODE none
-			set AUX_MODE none
-		fi
-		camera_trigger start
+	# # Sensors on the PWM interface bank
+	# if param compare SENS_EN_LL40LS 1
+	# then
+	# 	# clear pins 5 and 6
+	# 	set FMU_MODE pwm4
+	# 	set AUX_MODE pwm4
+	# fi
+	# if param greater TRIG_MODE 0
+	# then
+	# 	# We ONLY support trigger on pins 5 and 6 when simultanously using AUX for actuator output
+	# 	if param compare TRIG_PINS 56
+	# 	then
+	# 		# clear pins 5 and 6
+	# 		set FMU_MODE pwm4
+	# 		set AUX_MODE pwm4
+	# 	else
+	# 		set FMU_MODE none
+	# 		set AUX_MODE none
+	# 	fi
+	# 	camera_trigger start
 
-		param set CAM_FBACK_MODE 1
-		camera_feedback start
-	fi
+	# 	param set CAM_FBACK_MODE 1
+	# 	camera_feedback start
+	# fi
 
 	# If OUTPUT_MODE == none then something is wrong with setup and we shouldn't try to enable output
 	if [ $OUTPUT_MODE != none ]
@@ -522,16 +537,16 @@ then
 			fi
 		fi
 
-		if [ $OUTPUT_MODE == io -o $OUTPUT_MODE == uavcan_esc ]
-		then
-			if px4io start
-			then
-				sh /etc/init.d/rc.io
-			else
-				echo "PX4IO start failed" >> $LOG_FILE
-				tone_alarm $TUNE_ERR
-			fi
-		fi
+		# if [ $OUTPUT_MODE == io -o $OUTPUT_MODE == uavcan_esc ]
+		# then
+		# 	if px4io start
+		# 	then
+		# 		sh /etc/init.d/rc.io
+		# 	else
+		# 		echo "PX4IO start failed" >> $LOG_FILE
+		# 		tone_alarm $TUNE_ERR
+		# 	fi
+		# fi
 
 		if [ $OUTPUT_MODE == fmu -o $OUTPUT_MODE == ardrone ]
 		then
@@ -542,88 +557,88 @@ then
 				tone_alarm $TUNE_ERR
 			fi
 
-			if ver hwcmp PX4FMU_V1
-			then
-				if [ $FMU_MODE == pwm -o $FMU_MODE == gpio ]
-				then
-					set TTYS1_BUSY yes
-				fi
-				if [ $FMU_MODE == pwm_gpio -o $OUTPUT_MODE == ardrone ]
-				then
-					set TTYS1_BUSY yes
-				fi
-			fi
+			# if ver hwcmp PX4FMU_V1
+			# then
+			# 	if [ $FMU_MODE == pwm -o $FMU_MODE == gpio ]
+			# 	then
+			# 		set TTYS1_BUSY yes
+			# 	fi
+			# 	if [ $FMU_MODE == pwm_gpio -o $OUTPUT_MODE == ardrone ]
+			# 	then
+			# 		set TTYS1_BUSY yes
+			# 	fi
+			# fi
 		fi
 
-		if [ $OUTPUT_MODE == mkblctrl ]
-		then
-			set MKBLCTRL_ARG ""
-			if [ $MKBLCTRL_MODE == x ]
-			then
-				set MKBLCTRL_ARG "-mkmode x"
-			fi
-			if [ $MKBLCTRL_MODE == + ]
-			then
-				set MKBLCTRL_ARG "-mkmode +"
-			fi
+		# if [ $OUTPUT_MODE == mkblctrl ]
+		# then
+		# 	set MKBLCTRL_ARG ""
+		# 	if [ $MKBLCTRL_MODE == x ]
+		# 	then
+		# 		set MKBLCTRL_ARG "-mkmode x"
+		# 	fi
+		# 	if [ $MKBLCTRL_MODE == + ]
+		# 	then
+		# 		set MKBLCTRL_ARG "-mkmode +"
+		# 	fi
 
-			if mkblctrl $MKBLCTRL_ARG
-			then
-			else
-				echo "MK start failed" >> $LOG_FILE
-				tone_alarm $TUNE_ERR
-			fi
-			unset MKBLCTRL_ARG
-		fi
+		# 	if mkblctrl $MKBLCTRL_ARG
+		# 	then
+		# 	else
+		# 		echo "MK start failed" >> $LOG_FILE
+		# 		tone_alarm $TUNE_ERR
+		# 	fi
+		# 	unset MKBLCTRL_ARG
+		# fi
 		unset MK_MODE
 
-		if [ $OUTPUT_MODE == hil ]
-		then
-			if pwm_out_sim mode_pwm16
-			then
-			else
-				tone_alarm $TUNE_ERR
-			fi
-		fi
+		# if [ $OUTPUT_MODE == hil ]
+		# then
+		# 	if pwm_out_sim mode_pwm16
+		# 	then
+		# 	else
+		# 		tone_alarm $TUNE_ERR
+		# 	fi
+		# fi
 
 		#
 		# Start IO or FMU for RC PPM input if needed
 		#
-		if [ $IO_PRESENT == yes ]
-		then
-			if [ $OUTPUT_MODE != io ]
-			then
-				if px4io start
-				then
-					sh /etc/init.d/rc.io
-				else
-					echo "PX4IO start failed" >> $LOG_FILE
-					tone_alarm $TUNE_ERR
-				fi
-			fi
-		else
-			if [ $OUTPUT_MODE != fmu -a $OUTPUT_MODE != ardrone ]
-			then
-				if fmu mode_${FMU_MODE}
-				then
-				else
-					echo "FMU mode_${FMU_MODE} start failed" >> $LOG_FILE
-					tone_alarm $TUNE_ERR
-				fi
+		# if [ $IO_PRESENT == yes ]
+		# then
+		# 	if [ $OUTPUT_MODE != io ]
+		# 	then
+		# 		if px4io start
+		# 		then
+		# 			sh /etc/init.d/rc.io
+		# 		else
+		# 			echo "PX4IO start failed" >> $LOG_FILE
+		# 			tone_alarm $TUNE_ERR
+		# 		fi
+		# 	fi
+		# else
+		# 	if [ $OUTPUT_MODE != fmu -a $OUTPUT_MODE != ardrone ]
+		# 	then
+		# 		if fmu mode_${FMU_MODE}
+		# 		then
+		# 		else
+		# 			echo "FMU mode_${FMU_MODE} start failed" >> $LOG_FILE
+		# 			tone_alarm $TUNE_ERR
+		# 		fi
 
-				if ver hwcmp PX4FMU_V1
-				then
-					if [ $FMU_MODE == pwm -o $FMU_MODE == gpio ]
-					then
-						set TTYS1_BUSY yes
-					fi
-					if [ $FMU_MODE == pwm_gpio -o $OUTPUT_MODE == ardrone ]
-					then
-						set TTYS1_BUSY yes
-					fi
-				fi
-			fi
-		fi
+		# 		if ver hwcmp PX4FMU_V1
+		# 		then
+		# 			if [ $FMU_MODE == pwm -o $FMU_MODE == gpio ]
+		# 			then
+		# 				set TTYS1_BUSY yes
+		# 			fi
+		# 			if [ $FMU_MODE == pwm_gpio -o $OUTPUT_MODE == ardrone ]
+		# 			then
+		# 				set TTYS1_BUSY yes
+		# 			fi
+		# 		fi
+		# 	fi
+		# fi
 	fi
 
 	if [ $MAVLINK_F == default ]
@@ -646,17 +661,17 @@ then
 				mavlink start -r 20000 -m config -b 921600 -d /dev/ttyS0
 			fi
 
-			if ver hwcmp AEROFC_V1
-			then
-				set MAVLINK_F "-r 1200 -d /dev/ttyS4"
-			fi
+			# if ver hwcmp AEROFC_V1
+			# then
+			# 	set MAVLINK_F "-r 1200 -d /dev/ttyS4"
+			# fi
 		fi
 
-		if ver hwcmp CRAZYFLIE
-		then
-			# Avoid using either of the two available serials
-			set MAVLINK_F none
-		fi
+		# if ver hwcmp CRAZYFLIE
+		# then
+		# 	# Avoid using either of the two available serials
+		# 	set MAVLINK_F none
+		# fi
 	fi
 
 	if [ "x$MAVLINK_F" == xnone ]
@@ -839,10 +854,10 @@ then
 	#
 	# Start up ARDrone Motor interface
 	#
-	if [ $OUTPUT_MODE == ardrone ]
-	then
-		ardrone_interface start -d /dev/ttyS1
-	fi
+	# if [ $OUTPUT_MODE == ardrone ]
+	# then
+	# 	ardrone_interface start -d /dev/ttyS1
+	# fi
 
 	#
 	# Fixed wing setup
@@ -1120,13 +1135,13 @@ then
 	unset TEMP_CALIB_ARGS
 
 	# vmount to control mounts such as gimbals, disabled by default.
-	if param compare MNT_MODE_IN -1
-	then
-	else
-		if vmount start
-		then
-		fi
-	fi
+	# if param compare MNT_MODE_IN -1
+	# then
+	# else
+	# 	if vmount start
+	# 	then
+	# 	fi
+	# fi
 
 # End of autostart
 fi

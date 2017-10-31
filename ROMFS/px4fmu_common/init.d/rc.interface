@@ -130,6 +130,11 @@ then
 	set MIXER_AUX none
 fi
 
+if ver hwcmp PX4FMU_V3PRO
+then
+	set MIXER_AUX none
+fi
+
 if ver hwcmp PX4FMU_V5
 then
 	set MIXER_AUX none
