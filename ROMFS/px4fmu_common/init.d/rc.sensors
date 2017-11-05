@@ -167,6 +167,9 @@ fi
 
 if ver hwcmp PX4FMU_V3PRO
 then
+	if sca3300 start
+	then
+	fi
 fi
 
 if ver hwcmp PX4FMU_V4

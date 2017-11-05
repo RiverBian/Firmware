@@ -28,6 +28,7 @@ set(config_module_list
 	# drivers/iridiumsbd
 	# drivers/l3gd20
 	drivers/led
+	drivers/sca3300
 	# drivers/lis3mdl
 	# drivers/ll40ls
 	# drivers/lsm303d
