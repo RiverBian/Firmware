@@ -498,6 +498,8 @@ SCA3300::send_request(uint32_t request)
 	transfer(cmd, resp, sizeof(cmd));
 
 	response = ((uint32_t)resp[0] << 24) | ((uint32_t)resp[1] << 16) | ((uint32_t)resp[2] << 8) | ((uint32_t)resp[3]);
+	/*NOTE: SPI TLH time must be at least 10 us*/
+	up_udelay(10); 
 	return response;
 }
 
@@ -556,13 +558,13 @@ SCA3300::measure()
 	 * y of board is x of sensor and x of board is -y of sensor
 	 * perform only the axis assignment here.
 	 */	
-	send_request(REQ_READ_ACC_X);
+	// send_request(REQ_READ_ACC_X);
 	report.x_raw           = (send_request(REQ_READ_ACC_Y) & DATA_FIELD_MASK) >> 8;
-	send_request(REQ_READ_ACC_Y);
+	// send_request(REQ_READ_ACC_Y);	
 	report.y_raw           = (send_request(REQ_READ_ACC_Z) & DATA_FIELD_MASK) >> 8;
-	send_request(REQ_READ_ACC_Z);
+	// send_request(REQ_READ_ACC_Z);
 	report.z_raw           = (send_request(REQ_READ_TEMP) & DATA_FIELD_MASK) >> 8;
-	send_request(REQ_READ_TEMP);
+	// send_request(REQ_READ_TEMP);
 	report.temperature_raw = (send_request(REQ_READ_ACC_X) & DATA_FIELD_MASK) >> 8;	
 
 
