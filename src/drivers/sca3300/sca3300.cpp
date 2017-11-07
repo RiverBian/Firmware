@@ -107,7 +107,9 @@
 #define RS_ERROR			3
 
 /*set user sensor poll rate, according to datasheet should be set 2000Hz*/
-#define SENSOR_POLLRATE_USER  2000
+#define SENSOR_POLLRATE_USER			2000
+#define SCA3300_DEFAULT_FILTER_FREQ		200
+#define SCA3300_MAX_OUTPUT_RATE			2000
 
 extern "C" { __EXPORT int sca3300_main(int argc, char *argv[]); }
 
@@ -147,7 +149,11 @@ private:
 
 	perf_counter_t		_sample_perf;
 
-	uint32_t _response;
+	math::LowPassFilter2p	_accel_filter_x;
+	math::LowPassFilter2p	_accel_filter_y;
+	math::LowPassFilter2p	_accel_filter_z;
+
+	Integrator		_accel_int;
 
 	/**
 	 * Start automatic measurement.
@@ -184,6 +190,15 @@ private:
 	 */
 	
 	uint32_t		send_request(uint32_t request);
+
+	/**
+	 * Set the lowpass filter of the driver
+	 *
+	 * @param samplerate	The current samplerate
+	 * @param frequency	The cutoff frequency for the lowpass filter
+	 */
+	void			set_driver_lowpass_filter(float samplerate, float bandwidth);
+
 };
 
 SCA3300::SCA3300(int bus, spi_dev_e device) :
@@ -196,7 +211,10 @@ SCA3300::SCA3300(int bus, spi_dev_e device) :
 	_class_instance(-1),
 	_current_range(0),
 	_sample_perf(perf_alloc(PC_ELAPSED, "sca3300_read")),
-	_response(0)
+	_accel_filter_x(SENSOR_POLLRATE_USER, SCA3300_DEFAULT_FILTER_FREQ),
+	_accel_filter_y(SENSOR_POLLRATE_USER, SCA3300_DEFAULT_FILTER_FREQ),
+	_accel_filter_z(SENSOR_POLLRATE_USER, SCA3300_DEFAULT_FILTER_FREQ),
+	_accel_int(1000000 / SCA3300_MAX_OUTPUT_RATE, true)
 {
 	_device_id.devid_s.devtype = DRV_ACC_DEVTYPE_SCA3300;
 
@@ -404,6 +422,11 @@ SCA3300::ioctl(struct file *filp, int cmd, unsigned long arg)
 					/* XXX this is a bit shady, but no other way to adjust... */
 					_call.period = _call_interval = ticks;
 
+					float cutoff_freq_hz = _accel_filter_x.get_cutoff_freq();
+					float sample_rate = 1.0e6f / ticks;
+					set_driver_lowpass_filter(sample_rate, cutoff_freq_hz);
+
+
 					/* if we need to start the poll state machine, do it */
 					if (want_start) {
 						start();
@@ -450,7 +473,7 @@ SCA3300::ioctl(struct file *filp, int cmd, unsigned long arg)
 		return -EINVAL;
 
 	case ACCELIOCGSAMPLERATE:
-		return 1200;		/* always operating in low-noise mode */
+		return -EINVAL;	
 
 	case ACCELIOCSLOWPASS:
 		// return set_lowpass(arg);
@@ -503,6 +526,13 @@ SCA3300::send_request(uint32_t request)
 	return response;
 }
 
+void
+SCA3300::set_driver_lowpass_filter(float samplerate, float bandwidth)
+{
+	_accel_filter_x.set_cutoff_frequency(samplerate, bandwidth);
+	_accel_filter_y.set_cutoff_frequency(samplerate, bandwidth);
+	_accel_filter_z.set_cutoff_frequency(samplerate, bandwidth);
+}
 
 void
 SCA3300::start()
@@ -558,19 +588,34 @@ SCA3300::measure()
 	 * y of board is x of sensor and x of board is -y of sensor
 	 * perform only the axis assignment here.
 	 */	
-	// send_request(REQ_READ_ACC_X);
-	report.x_raw           = (send_request(REQ_READ_ACC_Y) & DATA_FIELD_MASK) >> 8;
-	// send_request(REQ_READ_ACC_Y);	
+	report.x_raw           = (send_request(REQ_READ_ACC_Y) & DATA_FIELD_MASK) >> 8;	
 	report.y_raw           = (send_request(REQ_READ_ACC_Z) & DATA_FIELD_MASK) >> 8;
-	// send_request(REQ_READ_ACC_Z);
 	report.z_raw           = (send_request(REQ_READ_TEMP) & DATA_FIELD_MASK) >> 8;
-	// send_request(REQ_READ_TEMP);
 	report.temperature_raw = (send_request(REQ_READ_ACC_X) & DATA_FIELD_MASK) >> 8;	
+	
+	/*SCA3300 axis z is is negtive to PX4 sensor axis z*/
+	report.z_raw           = ((report.z_raw == -32768) ? 32767 : -report.z_raw);
 
+	float xraw_f = report.x_raw;
+	float yraw_f = report.y_raw;
+	float zraw_f = report.z_raw;
 
-	report.x           = ((report.x_raw * _accel_range_scale) - _accel_scale.x_offset) * _accel_scale.x_scale;
-	report.y           = ((report.y_raw * _accel_range_scale) - _accel_scale.y_offset) * _accel_scale.y_scale;
-	report.z           = ((report.z_raw * _accel_range_scale) - _accel_scale.z_offset) * _accel_scale.z_scale;
+	float xin = ((xraw_f * _accel_range_scale) - _accel_scale.x_offset) * _accel_scale.x_scale;
+	float yin = ((yraw_f * _accel_range_scale) - _accel_scale.y_offset) * _accel_scale.y_scale;
+	float zin = ((zraw_f * _accel_range_scale) - _accel_scale.z_offset) * _accel_scale.z_scale;
+
+	report.x = _accel_filter_x.apply(xin);
+	report.y = _accel_filter_y.apply(yin);
+	report.z = _accel_filter_z.apply(zin);
+
+	math::Vector<3> aval(xin, yin, zin);
+	math::Vector<3> aval_integrated;
+
+	bool accel_notify = _accel_int.put(report.timestamp, aval, aval_integrated, report.integral_dt);
+	report.x_integral = aval_integrated(0);
+	report.y_integral = aval_integrated(1);
+	report.z_integral = aval_integrated(2);
+
 	report.temperature = -273.0f + report.temperature_raw/18.9f;
 	report.scaling     = _accel_range_scale;
 	report.range_m_s2  = _accel_range_m_s2;
@@ -580,12 +625,14 @@ SCA3300::measure()
 
 	_reports->force(&report);
 
-	/* notify anyone waiting for data */
-	poll_notify(POLLIN);
+	if (accel_notify) {
+		/* notify anyone waiting for data */
+		poll_notify(POLLIN);
 
-	/* publish for subscribers */
-	if (_accel_topic != nullptr && !(_pub_blocked)) {
-		orb_publish(ORB_ID(sensor_accel), _accel_topic, &report);
+		/* publish for subscribers */
+		if (_accel_topic != nullptr && !(_pub_blocked)) {
+			orb_publish(ORB_ID(sensor_accel), _accel_topic, &report);
+		}		
 	}
 
 	/* stop the perf counter */
