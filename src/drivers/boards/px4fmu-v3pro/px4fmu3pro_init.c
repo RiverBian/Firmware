@@ -174,7 +174,7 @@ stm32_boardinitialize(void)
 	// stm32_configgpio(GPIO_VDD_5V_HIPOWER_OC);
 	// stm32_configgpio(GPIO_VDD_5V_PERIPH_OC);
 	stm32_configgpio(GPIO_VDD_AUX_PWR_EN);
-	stm32_configgpio(GPIO_SCC_RESET);
+	stm32_configgpio(GPIO_SCR_RESET);
 	stm32_configgpio(GPIO_VDD_AUX_PWRGD);
 
 	/* configure the GPIO pins to outputs and keep them low */
@@ -423,9 +423,9 @@ __EXPORT int board_app_initialize(uintptr_t arg)
 	SPI_SETFREQUENCY(spi1, 10000000);
 	SPI_SETBITS(spi1, 8);
 	SPI_SETMODE(spi1, SPIDEV_MODE3);
-	SPI_SELECT(spi1, PX4_SPIDEV_SCC_X, false);
-	SPI_SELECT(spi1, PX4_SPIDEV_SCC_Y, false);
-	SPI_SELECT(spi1, PX4_SPIDEV_SCC_Z, false);
+	SPI_SELECT(spi1, PX4_SPIDEV_SCR_X, false);
+	SPI_SELECT(spi1, PX4_SPIDEV_SCR_Y, false);
+	SPI_SELECT(spi1, PX4_SPIDEV_SCR_Z, false);
 	SPI_SELECT(spi1, PX4_SPIDEV_SCA, false);
 	up_udelay(20);
 

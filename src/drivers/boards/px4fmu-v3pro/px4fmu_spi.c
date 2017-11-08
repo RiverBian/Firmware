@@ -77,9 +77,9 @@ __EXPORT void stm32_spiinitialize(void)
 	// stm32_configgpio(GPIO_SPI_CS_BARO);
 	// stm32_configgpio(GPIO_SPI_CS_HMC);
 	// stm32_configgpio(GPIO_SPI_CS_MPU);
-	stm32_configgpio(GPIO_SPI_CS_SCC_X);
-	stm32_configgpio(GPIO_SPI_CS_SCC_Y);
-	stm32_configgpio(GPIO_SPI_CS_SCC_Z);
+	stm32_configgpio(GPIO_SPI_CS_SCR_X);
+	stm32_configgpio(GPIO_SPI_CS_SCR_Y);
+	stm32_configgpio(GPIO_SPI_CS_SCR_Z);
 	stm32_configgpio(GPIO_SPI_CS_SCA);
 
 	// /* De-activate all peripherals,
@@ -91,9 +91,9 @@ __EXPORT void stm32_spiinitialize(void)
 	// stm32_gpiowrite(GPIO_SPI_CS_BARO, 1);
 	// stm32_gpiowrite(GPIO_SPI_CS_HMC, 1);
 	// stm32_gpiowrite(GPIO_SPI_CS_MPU, 1);
-	stm32_gpiowrite(GPIO_SPI_CS_SCC_X, 1);
-	stm32_gpiowrite(GPIO_SPI_CS_SCC_Y, 1);
-	stm32_gpiowrite(GPIO_SPI_CS_SCC_Z, 1);
+	stm32_gpiowrite(GPIO_SPI_CS_SCR_X, 1);
+	stm32_gpiowrite(GPIO_SPI_CS_SCR_Y, 1);
+	stm32_gpiowrite(GPIO_SPI_CS_SCR_Z, 1);
 	stm32_gpiowrite(GPIO_SPI_CS_SCA, 1);
 
 
@@ -125,40 +125,40 @@ __EXPORT void stm32_spi1select(FAR struct spi_dev_s *dev, enum spi_dev_e devid, 
 	/* SPI select is active low, so write !selected to select the device */
 
 	switch (devid) {
-	case PX4_SPIDEV_SCC_X:
+	case PX4_SPIDEV_SCR_X:
 		/* Making sure the other peripherals are not selected */
 		// stm32_gpiowrite(GPIO_SPI_CS_GYRO, !selected);
 		// stm32_gpiowrite(GPIO_SPI_CS_ACCEL_MAG, 1);
 		// stm32_gpiowrite(GPIO_SPI_CS_BARO, 1);
 		// stm32_gpiowrite(GPIO_SPI_CS_HMC, 1);
 		// stm32_gpiowrite(GPIO_SPI_CS_MPU, 1);
-		stm32_gpiowrite(GPIO_SPI_CS_SCC_X, !selected);
-		stm32_gpiowrite(GPIO_SPI_CS_SCC_Y, 1);
-		stm32_gpiowrite(GPIO_SPI_CS_SCC_Z, 1);
+		stm32_gpiowrite(GPIO_SPI_CS_SCR_X, !selected);
+		stm32_gpiowrite(GPIO_SPI_CS_SCR_Y, 1);
+		stm32_gpiowrite(GPIO_SPI_CS_SCR_Z, 1);
 		stm32_gpiowrite(GPIO_SPI_CS_SCA, 1);
 		break;
 
-	case PX4_SPIDEV_SCC_Y:
+	case PX4_SPIDEV_SCR_Y:
 		/* Making sure the other peripherals are not selected */
-		stm32_gpiowrite(GPIO_SPI_CS_SCC_X, 1);
-		stm32_gpiowrite(GPIO_SPI_CS_SCC_Y, !selected);
-		stm32_gpiowrite(GPIO_SPI_CS_SCC_Z, 1);
+		stm32_gpiowrite(GPIO_SPI_CS_SCR_X, 1);
+		stm32_gpiowrite(GPIO_SPI_CS_SCR_Y, !selected);
+		stm32_gpiowrite(GPIO_SPI_CS_SCR_Z, 1);
 		stm32_gpiowrite(GPIO_SPI_CS_SCA, 1);
 		break;
 
-	case PX4_SPIDEV_SCC_Z:
+	case PX4_SPIDEV_SCR_Z:
 		/* Making sure the other peripherals are not selected */
-		stm32_gpiowrite(GPIO_SPI_CS_SCC_X, 1);
-		stm32_gpiowrite(GPIO_SPI_CS_SCC_Y, 1);
-		stm32_gpiowrite(GPIO_SPI_CS_SCC_Z, !selected);
+		stm32_gpiowrite(GPIO_SPI_CS_SCR_X, 1);
+		stm32_gpiowrite(GPIO_SPI_CS_SCR_Y, 1);
+		stm32_gpiowrite(GPIO_SPI_CS_SCR_Z, !selected);
 		stm32_gpiowrite(GPIO_SPI_CS_SCA, 1);
 		break;
 
 	case PX4_SPIDEV_SCA:
 		/* Making sure the other peripherals are not selected */
-		stm32_gpiowrite(GPIO_SPI_CS_SCC_X, 1);
-		stm32_gpiowrite(GPIO_SPI_CS_SCC_Y, 1);
-		stm32_gpiowrite(GPIO_SPI_CS_SCC_Z, 1);
+		stm32_gpiowrite(GPIO_SPI_CS_SCR_X, 1);
+		stm32_gpiowrite(GPIO_SPI_CS_SCR_Y, 1);
+		stm32_gpiowrite(GPIO_SPI_CS_SCR_Z, 1);
 		stm32_gpiowrite(GPIO_SPI_CS_SCA, !selected);
 		break;
 
@@ -238,14 +238,14 @@ __EXPORT uint8_t stm32_spi2status(FAR struct spi_dev_s *dev, enum spi_dev_e devi
 __EXPORT void board_spi_reset(int ms)
 {
 	/* disable SPI bus */
-	stm32_configgpio(GPIO_SPI_CS_SCC_X_OFF);
-	stm32_configgpio(GPIO_SPI_CS_SCC_Y_OFF);
-	stm32_configgpio(GPIO_SPI_CS_SCC_Z_OFF);
+	stm32_configgpio(GPIO_SPI_CS_SCR_X_OFF);
+	stm32_configgpio(GPIO_SPI_CS_SCR_Y_OFF);
+	stm32_configgpio(GPIO_SPI_CS_SCR_Z_OFF);
 	stm32_configgpio(GPIO_SPI_CS_SCA_OFF);
 
-	stm32_gpiowrite(GPIO_SPI_CS_SCC_X_OFF, 0);
-	stm32_gpiowrite(GPIO_SPI_CS_SCC_Y_OFF, 0);
-	stm32_gpiowrite(GPIO_SPI_CS_SCC_Z_OFF, 0);
+	stm32_gpiowrite(GPIO_SPI_CS_SCR_X_OFF, 0);
+	stm32_gpiowrite(GPIO_SPI_CS_SCR_Y_OFF, 0);
+	stm32_gpiowrite(GPIO_SPI_CS_SCR_Z_OFF, 0);
 	stm32_gpiowrite(GPIO_SPI_CS_SCA_OFF, 0);
 
 	stm32_configgpio(GPIO_SPI1_SCK_OFF);
@@ -256,9 +256,9 @@ __EXPORT void board_spi_reset(int ms)
 	stm32_gpiowrite(GPIO_SPI1_MISO_OFF, 0);
 	stm32_gpiowrite(GPIO_SPI1_MOSI_OFF, 0);
 
-	/* set the SCC reset */
-	stm32_configgpio(GPIO_SCC_RESET);
-	stm32_gpiowrite(GPIO_SCC_RESET, 0);
+	/* set the SCR reset */
+	stm32_configgpio(GPIO_SCR_RESET);
+	stm32_gpiowrite(GPIO_SCR_RESET, 0);
 
 	/* wait for the sensor rail to reach GND */
 	usleep(ms * 1000);
@@ -267,25 +267,25 @@ __EXPORT void board_spi_reset(int ms)
 	/* re-enable power */
 
 	/* reset on */
-	stm32_gpiowrite(GPIO_SCC_RESET, 1);
+	stm32_gpiowrite(GPIO_SCR_RESET, 1);
 
 	/* wait a bit before starting SPI, different times didn't influence results */
 	usleep(100);
 
 	/* reconfigure the SPI pins */
 #ifdef CONFIG_STM32_SPI1
-	stm32_configgpio(GPIO_SPI_CS_SCC_X);
-	stm32_configgpio(GPIO_SPI_CS_SCC_Y);
-	stm32_configgpio(GPIO_SPI_CS_SCC_Z);
+	stm32_configgpio(GPIO_SPI_CS_SCR_X);
+	stm32_configgpio(GPIO_SPI_CS_SCR_Y);
+	stm32_configgpio(GPIO_SPI_CS_SCR_Z);
 	stm32_configgpio(GPIO_SPI_CS_SCA);
 
 	/* De-activate all peripherals,
 	 * required for some peripheral
 	 * state machines
 	 */
-	stm32_gpiowrite(GPIO_SPI_CS_SCC_X, 1);
-	stm32_gpiowrite(GPIO_SPI_CS_SCC_Y, 1);
-	stm32_gpiowrite(GPIO_SPI_CS_SCC_Z, 1);
+	stm32_gpiowrite(GPIO_SPI_CS_SCR_X, 1);
+	stm32_gpiowrite(GPIO_SPI_CS_SCR_Y, 1);
+	stm32_gpiowrite(GPIO_SPI_CS_SCR_Z, 1);
 	stm32_gpiowrite(GPIO_SPI_CS_SCA, 1);
 
 	stm32_configgpio(GPIO_SPI1_SCK);

@@ -93,6 +93,9 @@ set(msg_file_names
 	sensor_correction.msg
 	sensor_selection.msg
 	sensor_gyro.msg
+	sensor_gyro_x.msg
+	sensor_gyro_y.msg
+	sensor_gyro_z.msg
 	sensor_mag.msg
 	sensor_preflight.msg
 	servorail_status.msg

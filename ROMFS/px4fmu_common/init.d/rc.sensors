@@ -170,6 +170,10 @@ then
 	if sca3300 start
 	then
 	fi
+
+	if scr2100_x start
+	then
+	fi
 fi
 
 if ver hwcmp PX4FMU_V4
