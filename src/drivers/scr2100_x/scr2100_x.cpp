@@ -226,7 +226,7 @@ SCR2100_X::~SCR2100_X()
 	}
 
 	if (_class_instance != -1) {
-		unregister_class_devname(SCR2100_X_DEVICE_PATH, _class_instance);
+		unregister_class_devname(GYRO_BASE_DEVICE_PATH, _class_instance);
 	}
 
 	/* delete the perf counter */
@@ -254,7 +254,7 @@ SCR2100_X::init()
 		goto out;
 	}
 
-	_class_instance = register_class_devname(SCR2100_X_DEVICE_PATH);
+	_class_instance = register_class_devname(GYRO_BASE_DEVICE_PATH);
 
 	/* set new range scaling factor */
 	_current_range = 300;

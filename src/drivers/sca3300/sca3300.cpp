@@ -241,7 +241,7 @@ SCA3300::~SCA3300()
 	}
 
 	if (_class_instance != -1) {
-		unregister_class_devname(SCA3300_DEVICE_PATH, _class_instance);
+		unregister_class_devname(ACCEL_BASE_DEVICE_PATH, _class_instance);
 	}
 
 	/* delete the perf counter */
@@ -266,7 +266,7 @@ SCA3300::init()
 		goto out;
 	}
 
-	_class_instance = register_class_devname(SCA3300_DEVICE_PATH);
+	_class_instance = register_class_devname(ACCEL_BASE_DEVICE_PATH);
 	/* Wait (10ms) for memory reading and signal path settling. */
 	usleep(10000);
 
