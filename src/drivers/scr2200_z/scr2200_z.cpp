@@ -297,11 +297,11 @@ SCR2200_Z::init()
 
 	measure();
 
-	struct gyro_z_report arp;
-	_reports->get(&arp);
+	struct gyro_z_report grp;
+	_reports->get(&grp);
 
 	/* measurement will have generated a report, publish */
-	_gyro_topic = orb_advertise(ORB_ID(sensor_gyro_z), &arp);
+	_gyro_topic = orb_advertise(ORB_ID(sensor_gyro_z), &grp);
 
 	if (_gyro_topic == nullptr) {
 		DEVICE_DEBUG("failed to create sensor_gyro_z publication");
@@ -331,7 +331,7 @@ ssize_t
 SCR2200_Z::read(struct file *filp, char *buffer, size_t buflen)
 {
 	unsigned count = buflen / sizeof(struct gyro_z_report);
-	struct gyro_z_report *arp = reinterpret_cast<struct gyro_z_report *>(buffer);
+	struct gyro_z_report *grp = reinterpret_cast<struct gyro_z_report *>(buffer);
 	int ret = 0;
 
 	/* buffer must be large enough */
@@ -348,9 +348,9 @@ SCR2200_Z::read(struct file *filp, char *buffer, size_t buflen)
 		 * we are careful to avoid racing with it.
 		 */
 		while (count--) {
-			if (_reports->get(arp)) {
-				ret += sizeof(*arp);
-				arp++;
+			if (_reports->get(grp)) {
+				ret += sizeof(*grp);
+				grp++;
 			}
 		}
 
@@ -363,8 +363,8 @@ SCR2200_Z::read(struct file *filp, char *buffer, size_t buflen)
 	measure();
 
 	/* measurement will have generated a report, copy it out */
-	if (_reports->get(arp)) {
-		ret = sizeof(*arp);
+	if (_reports->get(grp)) {
+		ret = sizeof(*grp);
 	}
 
 	return ret;
