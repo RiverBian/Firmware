@@ -30,6 +30,8 @@ set(config_module_list
 	drivers/led
 	drivers/sca3300
 	drivers/scr2100_x
+	drivers/scr2100_y
+	drivers/scr2200_z
 	# drivers/lis3mdl
 	# drivers/ll40ls
 	# drivers/lsm303d
