@@ -53,12 +53,13 @@
 
 #include <uORB/topics/sensor_gyro.h>
 #include <uORB/topics/sensor_gyro_x.h>
-// #include <uORB/topics/sensor_gyro_y.h>
-// #include <uORB/topics/sensor_gyro_z.h>
+#include <uORB/topics/sensor_gyro_y.h>
+#include <uORB/topics/sensor_gyro_z.h>
+
 #define gyro_report sensor_gyro_s
 #define gyro_x_report sensor_gyro_x_s
-// #define gyro_x_report sensor_gyro_y_s
-// #define gyro_x_report sensor_gyro_z_s
+#define gyro_y_report sensor_gyro_y_s
+#define gyro_z_report sensor_gyro_z_s
 
 /** gyro scaling factors; Vout = (Vin * Vscale) + Voffset */
 struct gyro_calibration_s {

@@ -563,6 +563,8 @@ SCR2100_X::measure()
 	/* start the performance counter */
 	perf_begin(_sample_perf);
 
+	memset(&report, 0, sizeof(report));
+	
 	/*
 	 * Adjust and scale results to SI units.
 	 *

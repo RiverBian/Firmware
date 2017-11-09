@@ -591,7 +591,13 @@ SCA3300::measure()
 	report.z_raw           = (send_request(REQ_READ_TEMP) & DATA_FIELD_MASK) >> 8;
 	report.temperature_raw = (send_request(REQ_READ_ACC_X) & DATA_FIELD_MASK) >> 8;	
 	
-	/*SCA3300 axis z is is negtive to PX4 sensor axis z*/
+	/**
+	 * SCA3300 axis x is is negtive to PX4 sensor axis x
+	 * SCA3300 axis y is is negtive to PX4 sensor axis y
+	 * SCA3300 axis z is is negtive to PX4 sensor axis z
+	 */
+	report.x_raw           = ((report.x_raw == -32768) ? 32767 : -report.x_raw);
+	report.y_raw           = ((report.y_raw == -32768) ? 32767 : -report.y_raw);
 	report.z_raw           = ((report.z_raw == -32768) ? 32767 : -report.z_raw);
 
 	float xraw_f = report.x_raw;
