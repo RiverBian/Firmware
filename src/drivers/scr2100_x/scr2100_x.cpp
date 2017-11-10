@@ -137,7 +137,7 @@ private:
 	float			_gyro_range_scale;
 	float			_gyro_range_rad_s;
 	orb_advert_t		_gyro_topic;
-	int			_class_instance;
+	// int			_class_instance;
 
 	unsigned		_current_range;
 
@@ -200,7 +200,6 @@ SCR2100_X::SCR2100_X(int bus, spi_dev_e device) :
 	_gyro_range_scale(0.0f),
 	_gyro_range_rad_s(0.0f),
 	_gyro_topic(nullptr),
-	_class_instance(-1),
 	_current_range(0),
 	_sample_perf(perf_alloc(PC_ELAPSED, "scr2100_x_read")),
 	_gyro_filter_x(SENSOR_POLLRATE_USER, SCR2100_X_DEFAULT_FILTER_FREQ)
@@ -225,9 +224,9 @@ SCR2100_X::~SCR2100_X()
 		delete _reports;
 	}
 
-	if (_class_instance != -1) {
-		unregister_class_devname(GYRO_BASE_DEVICE_PATH, _class_instance);
-	}
+	// if (_class_instance != -1) {
+	// 	unregister_class_devname(GYRO_BASE_DEVICE_PATH, _class_instance);
+	// }
 
 	/* delete the perf counter */
 	perf_free(_sample_perf);
@@ -254,7 +253,7 @@ SCR2100_X::init()
 		goto out;
 	}
 
-	_class_instance = register_class_devname(GYRO_BASE_DEVICE_PATH);
+	// _class_instance = register_class_devname(GYRO_BASE_DEVICE_PATH);
 
 	/* set new range scaling factor */
 	_current_range = 300;
