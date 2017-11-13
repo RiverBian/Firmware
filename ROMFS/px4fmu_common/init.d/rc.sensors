@@ -182,6 +182,10 @@ then
 	if scr2200_z start
 	then
 	fi
+
+	if scr2000 start
+	then
+	fi
 fi
 
 if ver hwcmp PX4FMU_V4

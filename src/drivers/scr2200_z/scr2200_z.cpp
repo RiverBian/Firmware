@@ -101,7 +101,7 @@
 #define RS_ERROR			3
 
 /*set user sensor poll rate, according to datasheet should be set 2000Hz*/
-#define SENSOR_POLLRATE_USER				2300
+#define SENSOR_POLLRATE_USER				1000
 #define SCR2200_Z_DEFAULT_FILTER_FREQ		200
 // #define SCR2200_Z_MAX_OUTPUT_RATE			2300
 

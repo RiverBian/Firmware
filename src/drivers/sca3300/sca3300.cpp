@@ -107,9 +107,9 @@
 #define RS_ERROR			3
 
 /*set user sensor poll rate, according to datasheet should be set 2000Hz*/
-#define SENSOR_POLLRATE_USER			2000
+#define SENSOR_POLLRATE_USER			1000
 #define SCA3300_DEFAULT_FILTER_FREQ		200
-#define SCA3300_MAX_OUTPUT_RATE			2000
+#define SCA3300_MAX_OUTPUT_RATE			1000
 
 extern "C" { __EXPORT int sca3300_main(int argc, char *argv[]); }
 
