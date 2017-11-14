@@ -490,6 +490,9 @@ SCR2100_X::ioctl(struct file *filp, int cmd, unsigned long arg)
 	case GYROIOCGRANGE:
 		return _current_range;
 
+	case GYROIOCSELFTEST:
+		return OK;
+
 	default:
 		/* give it to the superclass */
 		return SPI::ioctl(filp, cmd, arg);

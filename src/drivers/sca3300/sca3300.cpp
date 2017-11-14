@@ -497,6 +497,9 @@ SCA3300::ioctl(struct file *filp, int cmd, unsigned long arg)
 	case ACCELIOCGRANGE:
 		return _current_range;
 
+	case ACCELIOCSELFTEST:
+		return OK;
+
 	default:
 		/* give it to the superclass */
 		return SPI::ioctl(filp, cmd, arg);
