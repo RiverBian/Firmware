@@ -28,6 +28,8 @@ float32 vel_n_m_s			# GPS North velocity, (metres/sec)
 float32 vel_e_m_s			# GPS East velocity, (metres/sec)
 float32 vel_d_m_s			# GPS Down velocity, (metres/sec)
 bool vel_ned_valid			# True if NED velocity is valid
+float32 heading 			# GPS heading, (Rad)
+float32 headingErr 			# GPS heading error, (Rad)
 
 # range finder measurements
 float32 range_to_ground			# range finder measured range to ground (m)

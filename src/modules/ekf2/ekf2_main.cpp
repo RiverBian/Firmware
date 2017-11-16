@@ -137,6 +137,7 @@ private:
 	float	_default_ev_pos_noise = 0.05f;	// external vision position noise used when an invalid value is supplied
 	float	_default_ev_ang_noise = 0.05f;	// external vision angle noise used when an invalid value is supplied
 
+	float   _default_gps_hdg_noise = 0.05f;  //gps heading noise used when an invalid value is supplied
 	// time slip monitoring
 	uint64_t integrated_time_us = 0; // integral of gyro delta time from start (usec)
 	uint64_t start_time_us = 0; // system time at start (usec)
@@ -275,6 +276,8 @@ private:
 	control::BlockParamExtFloat _ev_ang_noise;		// default angular observation noise for exernal vision measurements (rad)
 	control::BlockParamExtFloat _ev_innov_gate;	// external vision position innovation consistency gate size (STD)
 
+	// gps heading noise
+	control::BlockParamExtFloat _gps_hdg_noise;   // default gps heading observation noise for yaw measurement (rad)
 	// optical flow fusion
 	control::BlockParamExtFloat
 	_flow_noise;		// best quality observation noise for optical flow LOS rate measurements (rad/sec)
@@ -406,6 +409,7 @@ Ekf2::Ekf2():
 	_ev_pos_noise(this, "EKF2_EVP_NOISE", false, _default_ev_pos_noise),
 	_ev_ang_noise(this, "EKF2_EVA_NOISE", false, _default_ev_ang_noise),
 	_ev_innov_gate(this, "EKF2_EV_GATE", false, _params->ev_innov_gate),
+	_gps_hdg_noise(this, "EKF2_GHDG_NOISE", false, _default_gps_hdg_noise),
 	_flow_noise(this, "EKF2_OF_N_MIN", false, _params->flow_noise),
 	_flow_noise_qual_min(this, "EKF2_OF_N_MAX", false, _params->flow_noise_qual_min),
 	_flow_qual_min(this, "EKF2_OF_QMIN", false, _params->flow_qual_min),
@@ -720,6 +724,8 @@ void Ekf2::task_main()
 			gps_msg.nsats = gps.satellites_used;
 			//TODO add gdop to gps topic
 			gps_msg.gdop = 0.0f;
+			gps_msg.heading = gps.heading;
+			gps_msg.headingErr = _default_gps_hdg_noise;
 
 			_ekf.setGpsData(gps.timestamp, &gps_msg);
 
@@ -1306,6 +1312,8 @@ void Ekf2::task_main()
 				replay.vel_e_m_s = gps.vel_e_m_s;
 				replay.vel_d_m_s = gps.vel_d_m_s;
 				replay.vel_ned_valid = gps.vel_ned_valid;
+				replay.heading = gps.heading;
+				replay.headingErr = _default_gps_hdg_noise;
 
 			} else {
 				// this will tell the logging app not to bother logging any gps replay data

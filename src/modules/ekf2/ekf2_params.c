@@ -541,15 +541,19 @@ PARAM_DEFINE_INT32(EKF2_REC_RPL, 0);
  * 2 : Set to true to inhibit IMU bias estimation
  * 3 : Set to true to enable vision position fusion
  * 4 : Set to true to enable vision yaw fusion
+ * 5 : Set to true to enable wind fusion fusion
+ * 6 : Set to true to enable GPS heading yaw fusion
  *
  * @group EKF2
  * @min 0
- * @max 28
+ * @max 97
  * @bit 0 use GPS
  * @bit 1 use optical flow
  * @bit 2 inhibit IMU bias estimation
  * @bit 3 vision position fusion
  * @bit 4 vision yaw fusion
+ * @bit 5 multi-rotor drag model to estimate wind fusion
+ * @bit 6 GPS heading yaw fusion
  */
 PARAM_DEFINE_INT32(EKF2_AID_MASK, 1);
 
@@ -629,6 +633,16 @@ PARAM_DEFINE_FLOAT(EKF2_EVP_NOISE, 0.05f);
  * @decimal 2
  */
 PARAM_DEFINE_FLOAT(EKF2_EVA_NOISE, 0.05f);
+
+/**
+ * Measurement noise for gps heading observations used when the gps does not supply error estimates
+ *
+ * @group EKF2
+ * @min 0.01
+ * @unit rad
+ * @decimal 2
+ */
+PARAM_DEFINE_FLOAT(EKF2_GHDG_NOISE, 0.05f);
 
 /**
  * Gate size for vision estimate fusion
