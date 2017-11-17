@@ -664,6 +664,7 @@ GPS::task_main()
 			_report_gps_pos.vel_d_m_s = 0.0f;
 			_report_gps_pos.vel_m_s = 0.0f;
 			_report_gps_pos.cog_rad = 0.0f;
+			_report_gps_pos.heading = 0.314f;
 			_report_gps_pos.vel_ned_valid = true;
 			_report_gps_pos.satellites_used = 10;
 
