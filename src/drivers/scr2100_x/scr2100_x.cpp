@@ -258,7 +258,7 @@ SCR2100_X::init()
 	/* set new range scaling factor */
 	_current_range = 300;
 	_gyro_range_rad_s = _current_range / 180.0f * M_PI_F;
-	_gyro_range_scale = 1 / (GYRO_SENSITIVITY * 180.0f * M_PI_F);
+	_gyro_range_scale = 1 / (GYRO_SENSITIVITY * 180.0f) * M_PI_F;
 
 	/*to do:reset sensor use pull down PIN_EXTRESN*/
 
