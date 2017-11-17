@@ -100,10 +100,11 @@
 #define RS_NO_ERROR			1
 #define RS_ERROR			3
 
-/*set user sensor poll rate, according to datasheet should be set 2000Hz*/
+/*set user sensor poll rate, according to datasheet should be set 2300Hz*/
 #define SENSOR_POLLRATE_USER				1000
-#define SCR2200_Z_DEFAULT_FILTER_FREQ		200
-// #define SCR2200_Z_MAX_OUTPUT_RATE			2300
+#define SCR2200_Z_DEFAULT_FILTER_FREQ		60
+#define SCR2200_Z_PUB_RATE 					250 					
+#define SCR2200_Z_PUB_RATE_CNT  			SENSOR_POLLRATE_USER/SCR2200_Z_PUB_RATE	  //result should be integer
 
 extern "C" { __EXPORT int scr2200_z_main(int argc, char *argv[]); }
 
@@ -140,6 +141,8 @@ private:
 	int			_class_instance;
 
 	unsigned		_current_range;
+
+	unsigned		_sample_count;
 
 	perf_counter_t		_sample_perf;
 
@@ -202,6 +205,7 @@ SCR2200_Z::SCR2200_Z(int bus, spi_dev_e device) :
 	_gyro_topic(nullptr),
 	_class_instance(-1),
 	_current_range(0),
+	_sample_count(0),
 	_sample_perf(perf_alloc(PC_ELAPSED, "scr2200_z_read")),
 	_gyro_filter_z(SENSOR_POLLRATE_USER, SCR2200_Z_DEFAULT_FILTER_FREQ)
 {
@@ -603,15 +607,18 @@ SCR2200_Z::measure()
 
 	_reports->force(&report);
 
-	// if (gyro_notify) {
-	/* notify anyone waiting for data */
-	poll_notify(POLLIN);
+	_sample_count++;
 
-	/* publish for subscribers */
-	if (_gyro_topic != nullptr && !(_pub_blocked)) {
-		orb_publish(ORB_ID(sensor_gyro_z), _gyro_topic, &report);
-	}		
-	// }
+	if (_sample_count >= SCR2200_Z_PUB_RATE_CNT) {
+		/* notify anyone waiting for data */
+		poll_notify(POLLIN);
+
+		/* publish for subscribers */
+		if (_gyro_topic != nullptr && !(_pub_blocked)) {
+			orb_publish(ORB_ID(sensor_gyro_z), _gyro_topic, &report);
+		}
+		_sample_count  = 0;		
+	}
 
 	/* stop the perf counter */
 	perf_end(_sample_perf);

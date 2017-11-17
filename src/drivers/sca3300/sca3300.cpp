@@ -107,9 +107,11 @@
 #define RS_ERROR			3
 
 /*set user sensor poll rate, according to datasheet should be set 2000Hz*/
-#define SENSOR_POLLRATE_USER			1000
-#define SCA3300_DEFAULT_FILTER_FREQ		200
-#define SCA3300_MAX_OUTPUT_RATE			1000
+#define SENSOR_POLLRATE_USER				1000
+#define SCA3300_DEFAULT_FILTER_FREQ			88
+#define SCA3300_PUB_RATE 					250 					
+#define SCA3300_PUB_RATE_CNT  				SENSOR_POLLRATE_USER/SCA3300_PUB_RATE	  //result should be integer
+
 
 extern "C" { __EXPORT int sca3300_main(int argc, char *argv[]); }
 
@@ -147,13 +149,13 @@ private:
 
 	unsigned		_current_range;
 
+	unsigned		_sample_count;
+
 	perf_counter_t		_sample_perf;
 
 	math::LowPassFilter2p	_accel_filter_x;
 	math::LowPassFilter2p	_accel_filter_y;
 	math::LowPassFilter2p	_accel_filter_z;
-
-	Integrator		_accel_int;
 
 	/**
 	 * Start automatic measurement.
@@ -210,11 +212,11 @@ SCA3300::SCA3300(int bus, spi_dev_e device) :
 	_accel_topic(nullptr),
 	_class_instance(-1),
 	_current_range(0),
+	_sample_count(0),
 	_sample_perf(perf_alloc(PC_ELAPSED, "sca3300_read")),
 	_accel_filter_x(SENSOR_POLLRATE_USER, SCA3300_DEFAULT_FILTER_FREQ),
 	_accel_filter_y(SENSOR_POLLRATE_USER, SCA3300_DEFAULT_FILTER_FREQ),
-	_accel_filter_z(SENSOR_POLLRATE_USER, SCA3300_DEFAULT_FILTER_FREQ),
-	_accel_int(1000000 / SCA3300_MAX_OUTPUT_RATE, true)
+	_accel_filter_z(SENSOR_POLLRATE_USER, SCA3300_DEFAULT_FILTER_FREQ)
 {
 	_device_id.devid_s.devtype = DRV_ACC_DEVTYPE_SCA3300;
 
@@ -634,15 +636,18 @@ SCA3300::measure()
 
 	_reports->force(&report);
 
-	// if (accel_notify) {
-		/* notify anyone waiting for data */
-	poll_notify(POLLIN);
+	_sample_count++;
 
-	/* publish for subscribers */
-	if (_accel_topic != nullptr && !(_pub_blocked)) {
-		orb_publish(ORB_ID(sensor_accel), _accel_topic, &report);
-	}		
-	// }
+	if (_sample_count >= SCA3300_PUB_RATE_CNT) {
+			/* notify anyone waiting for data */
+		poll_notify(POLLIN);
+
+		/* publish for subscribers */
+		if (_accel_topic != nullptr && !(_pub_blocked)) {
+			orb_publish(ORB_ID(sensor_accel), _accel_topic, &report);
+		}	
+		_sample_count  = 0;		
+	}
 
 	/* stop the perf counter */
 	perf_end(_sample_perf);
